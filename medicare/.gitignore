@@ -1,0 +1,74 @@
+# Large scraped HTML files (not needed - we have the JSON)
+scraped_html/
+scraped_html_all/
+scraped_html_selenium/
+
+# Original CSV data (too large for git)
+CY2026_Landscape_202511/
+MA_Plan_Directory_2025_11/
+*.csv
+*.xlsb
+*.xlsx
+
+# PDF files
+*.pdf
+
+# Zip archives
+*.zip
+*.tar.gz
+
+# Log files
+*.log
+
+# Python cache
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Scraping results and progress files
+*_scrape_results.json
+*_scraping_progress.json
+scraping_progress.json
+scraping_stats.json
+
+# OS files
+.DS_Store
+.vscode/
+.idea/
+
+# Temporary files
+lambda_package/
+lambda_package.zip
+
+# Keep the county cache files - they're needed for deployment
+!mock_api/*/counties/*.json
+!mock_api/*/zip_to_county_multi.json
+
+# Generated API files (deployment artifacts, not source)
+static_api/
+static_api_minified/
+data/output/
+
+# Raw scraping files
+raw_sc_plans/
+raw_nj_plans/
+raw_ny_plans/
+raw_wa_plans/
+test_sc_scrape_output/
+downloaded_data/
+
+# Large data files (keep in data directories but don't track changes frequently)
+api_test_results.json
+network_requests.json
+
+# Retry and batch files (temporary scraping artifacts)
+retry*.json
+batch*.json
+*_output.log
+timing_log.json
+
+# State-specific temporary files
+*_plans_to_scrape.json
+charleston_*.json
+cumberland_*.json
+zip_*_plans.json

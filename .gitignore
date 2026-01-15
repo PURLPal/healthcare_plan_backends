@@ -1,0 +1,96 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Data files (scraped/processed data should not be version controlled)
+data/raw/*.csv
+data/raw/*.json
+data/raw/*.html
+data/processed/
+data/static_api/
+*.csv
+*.parquet
+
+# AWS/Deployment artifacts
+*.zip
+package/
+lambda/*.zip
+.db_password
+db_credentials.json
+api_deployment.json
+
+# Environment variables
+.env
+.env.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+logs/
+*.out
+
+# Node modules (if any)
+node_modules/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+
+# Database dumps
+*.sql.gz
+*.dump
+
+# Secrets and credentials
+*password*
+*credentials*
+*secret*
+*.pem
+*.key
+
+# Build artifacts
+build/
+dist/
+
+# Test coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Keep these reference files (they're small and needed)
+!shared/unified_zip_to_fips.json
+!shared/fips_to_county_name.json
+!medicare/data/reference/*.json
+!aca/data/reference/*.json
