@@ -7,7 +7,8 @@ Monorepo containing backend APIs for Medicare and ACA marketplace health insuran
 ## 🏥 APIs
 
 ### Medicare API
-**URL:** `https://medicare.purlpal-api.com/medicare`
+**Base URL:** `https://medicare.purlpal-api.com/medicare`  
+**OpenAPI Spec:** [`https://medicare.purlpal-api.com/medicare/openapi.yaml`](https://medicare.purlpal-api.com/medicare/openapi.yaml)
 
 - **Plans:** 5,734 Medicare Advantage (MA), Medicare Advantage Prescription Drug (MAPD), and Part D plans
 - **Coverage:** All 50 states + DC + territories
@@ -15,12 +16,50 @@ Monorepo containing backend APIs for Medicare and ACA marketplace health insuran
 - **Data Source:** Medicare.gov Plan Finder (scraped)
 
 ### ACA API
-**URL:** `https://aca.purlpal-api.com/aca`
+**Base URL:** `https://aca.purlpal-api.com/aca`  
+**OpenAPI Spec:** [`https://aca.purlpal-api.com/aca/openapi.yaml`](https://aca.purlpal-api.com/aca/openapi.yaml)
 
 - **Plans:** 20,354 ACA marketplace medical plans
 - **Coverage:** 30 federally-facilitated marketplace states
 - **Architecture:** PostgreSQL RDS + Lambda + API Gateway
 - **Data Source:** CMS.gov Public Use Files
+
+---
+
+## 🧪 Testing & API Coverage
+
+### Comprehensive Test Scripts
+
+**Medicare API Test Script:**  
+📍 **Location:** [`medicare/tests/test_api_comprehensive.py`](medicare/tests/test_api_comprehensive.py)
+
+```bash
+cd medicare
+# Test 5 random ZIP codes per state (default)
+python3 tests/test_api_comprehensive.py 5
+
+# Test 10 ZIP codes per state (thorough)
+python3 tests/test_api_comprehensive.py 10
+```
+
+**ACA API Test Script:**  
+📍 **Location:** [`aca/tests/test_api_comprehensive.py`](aca/tests/test_api_comprehensive.py)
+
+```bash
+cd aca
+# Test 5 random ZIP codes per state (default)
+python3 tests/test_api_comprehensive.py 5
+
+# Test 10 ZIP codes per state (thorough)
+python3 tests/test_api_comprehensive.py 10
+```
+
+**What These Scripts Test:**
+- ✅ Random ZIP code sampling across all states
+- ✅ Plan retrieval for each ZIP
+- ✅ Metal level / category filtering
+- ✅ Response times and success rates
+- ✅ Data completeness validation
 
 ---
 
@@ -168,19 +207,14 @@ Maps FIPS codes to county names and states.
 
 ## 🧪 Testing
 
+> **📍 See [Testing & API Coverage](#-testing--api-coverage) section above for detailed test script locations and usage.**
+
 ### Comprehensive API Tests
 
 Both APIs have comprehensive test suites that test multiple ZIP codes per state:
 
-```bash
-# Medicare API - test 5 ZIPs per state
-cd medicare
-python3 tests/test_api_comprehensive.py 5
-
-# ACA API - test 5 ZIPs per state
-cd aca
-python3 tests/test_api_comprehensive.py 5
-```
+- **Medicare:** `medicare/tests/test_api_comprehensive.py`
+- **ACA:** `aca/tests/test_api_comprehensive.py`
 
 ### Quick Tests
 
