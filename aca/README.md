@@ -4,10 +4,11 @@ Database-backed API for ACA (Affordable Care Act) marketplace plan lookup by ZIP
 
 ## Overview
 
-- **Plans:** 19,272 medical plans (2026 Individual market)
-- **Coverage:** ~32 federally-facilitated states
-- **Metal Levels:** Bronze, Silver, Gold, Platinum, Catastrophic
+- **Plans:** 20,354 medical plans (2026 Individual market)
+- **Coverage:** 30 federally-facilitated states
+- **Metal Levels:** Bronze, Silver, Gold, Platinum, Catastrophic, Expanded Bronze
 - **Geography:** County-based service areas
+- **Benefits:** 234 benefit types with full cost-sharing details
 - **API URL:** `https://aca.purlpal-api.com/aca/` (when deployed)
 
 ## Quick Start
@@ -112,13 +113,30 @@ ACA plan data from CMS.gov:
 - Plan Attributes PUF (Public Use File)
 - Service Area PUF
 - Rate PUF
-- Benefits and Cost Sharing PUF
+- Benefits and Cost Sharing PUF ✅ **Fully loaded**
 
 Data year: **2026**
 
 Sources:
 - https://www.cms.gov/marketplace/resources/data/public-use-files
 - https://data.healthcare.gov/
+
+### Benefits Data
+
+**Status:** ✅ Fully deployed (1,421,810 benefit records)
+
+The database includes comprehensive benefit cost-sharing data:
+- **234 benefit types** (drug costs, specialist visits, ER, hospital, etc.)
+- **In-network & out-of-network** costs for each benefit
+- **Copays, coinsurance, and coverage details**
+- **All 20,354 plans** have complete benefit data
+
+**Query Examples:** See `SQL_QUERY_EXAMPLES.md` for ready-to-use queries
+
+**Documentation:**
+- `BENEFITS_NOW_INDEXED.md` - Complete list of searchable benefits
+- `SQL_QUERY_EXAMPLES.md` - 10 copy-paste SQL query examples
+- `DEPLOY_BENEFITS_TABLE.md` - Deployment guide and technical details
 
 ## Setup
 
@@ -243,10 +261,11 @@ The `ratio` field indicates what percentage of the ZIP code falls within each co
 | Feature | Medicare API | ACA API |
 |---------|--------------|---------|
 | **Market** | Medicare Advantage + Part D | ACA Individual Marketplace |
-| **Categories** | MAPD, MA, PD | Bronze, Silver, Gold, Platinum |
+| **Categories** | MAPD, MA, PD | Bronze, Silver, Gold, Platinum, Expanded Bronze |
 | **Age Factor** | No (65+ only) | Yes (rates vary 21-64) |
-| **Plans** | 5,734 | 19,272 |
-| **States** | All 50 + DC | ~32 federally-facilitated |
+| **Plans** | 5,734 | 20,354 |
+| **Benefits** | Limited | 234 benefit types with full cost-sharing |
+| **States** | All 50 + DC | 30 federally-facilitated |
 
 ## Cost Estimate
 
