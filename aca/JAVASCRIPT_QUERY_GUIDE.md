@@ -7,121 +7,78 @@
 
 ---
 
-## Table of Contents
+## ⚡ Quick Start (Use This Now)
 
-1. [Database Connection Setup](#database-connection-setup)
-2. [Table Schema Reference](#table-schema-reference)
-3. [Query Examples by Use Case](#query-examples-by-use-case)
-4. [Chrome Extension Architecture](#chrome-extension-architecture)
+### Current Approach: Direct SQL via Simple Backend
 
----
+For rapid deployment, use a simple Node.js backend that executes SQL queries.
 
-## Database Connection Setup
+**Setup (2 minutes):**
 
-### ⚠️ Important: Security Considerations
-
-**DO NOT connect directly from Chrome Extension to PostgreSQL!**
-
-PostgreSQL requires credentials and direct connections are:
-- ❌ Insecure (exposes database credentials)
-- ❌ Not supported by Chrome Extensions (no native PostgreSQL drivers)
-- ❌ Violates CORS policies
-
-### ✅ Recommended Architecture
-
-```
-Chrome Extension → REST API (Lambda/Node.js) → PostgreSQL Database
+```bash
+npm install pg express cors
 ```
 
----
-
-## Option 1: Using AWS Lambda (Serverless)
-
-### Backend: Lambda Function (Node.js)
+**Backend Server:** `sql-proxy.js`
 
 ```javascript
-// lambda/aca-query-api.js
+const express = require('express');
+const cors = require('cors');
 const { Client } = require('pg');
 
-// Database connection (from environment variables)
-const client = new Client({
-  host: process.env.DB_HOST,
-  port: 5432,
-  database: process.env.DB_NAME,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  ssl: { rejectUnauthorized: false }
-});
+const app = express();
+app.use(cors());
+app.use(express.json());
 
-exports.handler = async (event) => {
-  const { queryType, params } = JSON.parse(event.body);
+// Database connection
+const DB_CONFIG = {
+  host: 'aca-plans-db.cc98ea006lul.us-east-1.rds.amazonaws.com',
+  port: 5432,
+  database: 'aca_plans',
+  user: 'aca_admin',
+  password: 'AvRePOWBfVFZyPsKPPG2tV3r',
+  ssl: { rejectUnauthorized: false }
+};
+
+// Execute SQL endpoint
+app.post('/query', async (req, res) => {
+  const { sql, params } = req.body;
+  const client = new Client(DB_CONFIG);
   
   try {
     await client.connect();
-    
-    let result;
-    switch(queryType) {
-      case 'monthly_costs':
-        result = await getMonthlyCosts(params);
-        break;
-      case 'moop':
-        result = await getMOOP(params);
-        break;
-      case 'deductibles':
-        result = await getDeductibles(params);
-        break;
-      case 'specialist':
-        result = await getSpecialistCosts(params);
-        break;
-      case 'in_vs_out_network':
-        result = await getInVsOutNetwork(params);
-        break;
-      case 'emergency':
-        result = await getEmergencyRoomCosts(params);
-        break;
-      default:
-        throw new Error('Invalid query type');
-    }
-    
-    return {
-      statusCode: 200,
-      headers: {
-        'Content-Type': 'application/json',
-        'Access-Control-Allow-Origin': '*'
-      },
-      body: JSON.stringify(result)
-    };
+    const result = await client.query(sql, params);
+    res.json(result.rows);
   } catch (error) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: error.message })
-    };
+    console.error('Query error:', error);
+    res.status(500).json({ error: error.message });
   } finally {
     await client.end();
   }
-};
+});
 
-// Query functions (see below for implementations)
-async function getMonthlyCosts(params) { /* ... */ }
-async function getMOOP(params) { /* ... */ }
-// ... etc
+app.listen(3000, () => console.log('SQL proxy running on http://localhost:3000'));
 ```
 
-### Frontend: Chrome Extension JavaScript
+**Run:**
+```bash
+node sql-proxy.js
+```
+
+**Frontend Client:**
 
 ```javascript
-// chrome-extension/content.js
-
+// chrome-extension/aca-client.js
 class ACAQueryClient {
-  constructor(apiEndpoint) {
-    this.apiEndpoint = apiEndpoint; // e.g., 'https://api.yoursite.com/aca-query'
+  constructor(apiUrl = 'http://localhost:3000') {
+    this.apiUrl = apiUrl;
   }
 
-  async query(queryType, params) {
-    const response = await fetch(this.apiEndpoint, {
+  async executeSQL(sql, params = []) {
+    const response = await fetch(`${this.apiUrl}/query`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ queryType, params })
+      body: JSON.stringify({ sql, params })
     });
     
     if (!response.ok) {
@@ -130,41 +87,30 @@ class ACAQueryClient {
     
     return await response.json();
   }
-
-  // Convenience methods for each query type
-  async getMonthlyCosts(planIds, age = 40) {
-    return this.query('monthly_costs', { planIds, age });
-  }
-
-  async getMOOP(planIds) {
-    return this.query('moop', { planIds });
-  }
-
-  async getDeductibles(planIds) {
-    return this.query('deductibles', { planIds });
-  }
-
-  async getSpecialistCosts(planIds) {
-    return this.query('specialist', { planIds });
-  }
-
-  async getInVsOutNetwork(planIds, benefitName) {
-    return this.query('in_vs_out_network', { planIds, benefitName });
-  }
-
-  async getEmergencyRoomCosts(planIds) {
-    return this.query('emergency', { planIds });
-  }
 }
 
-// Usage in your extension
-const client = new ACAQueryClient('https://your-api.com/aca-query');
+// Usage
+const client = new ACAQueryClient();
 
-// Example: Get monthly costs for specific plans
-const plans = ['21525FL0020002-00', '48121FL0070122-00'];
-const costs = await client.getMonthlyCosts(plans, 35);
-console.log(costs);
+const sql = `
+  SELECT plan_marketing_name, issuer_name, 
+         plan_attributes->>'deductible_individual' as deductible
+  FROM plans 
+  WHERE plan_id = $1
+`;
+
+const result = await client.executeSQL(sql, ['21525FL0020002-00']);
+console.log(result);
 ```
+
+---
+
+## Table of Contents
+
+1. [Table Schema Reference](#table-schema-reference)
+2. [Query Examples by Use Case](#query-examples-by-use-case)
+3. [Chrome Extension Integration](#chrome-extension-integration)
+4. [Future: REST API Architecture](#future-rest-api-architecture)
 
 ---
 
