@@ -65,6 +65,18 @@ def extract_healthsherpa_data(zip_code):
         print(f"❌ Failed to parse JSON: {e}")
         return None
     
+    # Extract age and tobacco status from household data
+    age_from_html = None
+    tobacco_from_html = None
+    try:
+        household = react_data['state']['household']
+        if 'applicants' in household and len(household['applicants']) > 0:
+            applicant = household['applicants'][0]
+            age_from_html = applicant.get('age')
+            tobacco_from_html = applicant.get('smoker', False)
+    except (KeyError, TypeError):
+        pass
+    
     # Navigate to plan data
     try:
         plans = react_data['state']['entities']['insurance_full_plans']
@@ -113,7 +125,11 @@ def extract_healthsherpa_data(zip_code):
             'deductible': deductible,
         }
     
-    return healthsherpa_plans
+    return {
+        'plans': healthsherpa_plans,
+        'age': age_from_html,
+        'tobacco': tobacco_from_html,
+    }
 
 def get_database_rates(zip_code, age, tobacco):
     """Get rates from database for given ZIP, age, and tobacco status"""
@@ -318,22 +334,35 @@ if __name__ == "__main__":
     
     # Extract HealthSherpa data
     print("\n1️⃣  Extracting data from HealthSherpa HTML...")
-    hs_plans = extract_healthsherpa_data(ZIP_CODE)
+    hs_data = extract_healthsherpa_data(ZIP_CODE)
     
-    if not hs_plans:
+    if not hs_data:
         print("❌ Failed to extract HealthSherpa data")
         sys.exit(1)
     
+    hs_plans = hs_data['plans']
+    age_from_html = hs_data['age']
+    tobacco_from_html = hs_data['tobacco']
+    
     print(f"   ✓ Extracted {len(hs_plans)} plans from HealthSherpa")
     
+    # Use detected age/tobacco if available, otherwise use config
+    actual_age = age_from_html if age_from_html else TEST_AGE
+    actual_tobacco = tobacco_from_html if tobacco_from_html is not None else TOBACCO_USER
+    
+    if age_from_html:
+        print(f"   ✓ Detected from HTML: Age {actual_age}, Tobacco {'Yes' if actual_tobacco else 'No'}")
+        if age_from_html != TEST_AGE or tobacco_from_html != TOBACCO_USER:
+            print(f"   ⚠️  Config mismatch - using HTML values instead of config")
+    
     # Get database rates
-    print("\n2️⃣  Querying database for comparison rates...")
-    db_plans = get_database_rates(ZIP_CODE, TEST_AGE, TOBACCO_USER)
+    print(f"\n2️⃣  Querying database for comparison rates (Age {actual_age}, Tobacco {'Yes' if actual_tobacco else 'No'})...")
+    db_plans = get_database_rates(ZIP_CODE, actual_age, actual_tobacco)
     print(f"   ✓ Retrieved {len(db_plans)} plans from database")
     
     # Compare
     print("\n3️⃣  Comparing plan data...")
-    comparisons = compare_plans(hs_plans, db_plans, TOBACCO_USER)
+    comparisons = compare_plans(hs_plans, db_plans, actual_tobacco)
     
     if not comparisons:
         print("❌ No plans to compare")
